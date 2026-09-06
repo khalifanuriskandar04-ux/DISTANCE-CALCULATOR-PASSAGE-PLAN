@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#062d4a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CSM WYVERN">
+<title>CSM WYVERN Passage Plan</title>
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef4f8;color:#12334a;font-family:Arial,Helvetica,sans-serif}
+.top{background:linear-gradient(115deg,#041e35,#0a4b72 58%,#072944);color:#fff;padding:15px 22px 10px;position:relative;overflow:hidden}
+.top:after{content:"CSM WYVERN";position:absolute;right:-15px;bottom:-22px;font-size:76px;font-weight:900;opacity:.045}
+.brand{display:flex;align-items:center;gap:14px;max-width:1200px;margin:auto}.logo{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #d9edf5;box-shadow:0 3px 12px #0005}
+.title h1{margin:0;font-size:28px;letter-spacing:1px}.title p{margin:4px 0 0;letter-spacing:3px;font-weight:bold;font-size:13px;color:#d5e8f1}.slogan{margin-left:auto;text-align:right;font-size:12px;line-height:1.45;color:#fff;opacity:.9}
+nav{max-width:1200px;margin:13px auto 0;display:flex;gap:6px;flex-wrap:wrap}.tab{padding:10px 15px;border-radius:8px;background:#ffffff12;border:1px solid #ffffff20;font-weight:bold;font-size:11px}.tab.active{background:#0d91d7}
+.container{max-width:1200px;margin:auto;padding:13px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{background:linear-gradient(145deg,#083b61,#07527c);color:#fff;border-radius:11px;padding:13px;box-shadow:0 4px 12px #1233}.stat small{display:block;font-size:10px;font-weight:bold;opacity:.85;letter-spacing:.5px}.stat strong{display:block;font-size:23px;margin-top:4px}.ready{color:#fff;background:#0ba96b;padding:5px 8px;border-radius:15px;font-size:10px}
+.card{background:#fff;border:1px solid #d8e4eb;border-radius:13px;margin-top:12px;padding:12px;box-shadow:0 4px 16px #0a365a12}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.head h2{font-size:15px;margin:0;color:#073b61}.head span{font-size:10px;background:#e6f5fa;color:#08759b;border-radius:15px;padding:5px 8px;font-weight:bold}
+#map{height:430px;border-radius:10px;border:1px solid #cddde5}
+.tablewrap{overflow:auto;border:1px solid #d4e0e7;border-radius:10px}table{border-collapse:collapse;width:100%;min-width:1050px}th{background:#07517d;color:#fff;padding:9px;font-size:10px}td{text-align:center;padding:6px;border-bottom:1px solid #e0e8ed;font-size:12px}tr:nth-child(even) td{background:#f8fbfd}
+input,select{font-size:16px;height:36px;border:1px solid #c7d5dd;border-radius:7px;padding:6px 8px;font-weight:bold;color:#173b51;background:#fff}.wp{width:82px}.deg{width:58px}.min{width:78px}.dir{width:57px}.pos{font-family:monospace;white-space:nowrap}
+.btn{border:0;border-radius:8px;padding:9px 12px;font-weight:bold;color:#fff;background:#0a79c4}.btn.green{background:#16a45f}.btn.red{background:#dc3131}.btn.gray{background:#667a86}.toolbar{display:flex;gap:7px;flex-wrap:wrap}
+.bottom{display:grid;grid-template-columns:1.3fr 1fr .85fr;gap:10px}.panel{background:#e8f5fb;border:1px solid #c8e2ed;border-radius:11px;padding:12px}.panel h3{margin:0 0 9px;color:#08436a;font-size:14px}.keys{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.key{height:43px;border:0;border-radius:7px;background:#07517d;color:#fff;font-size:16px;font-weight:bold}.key.done{grid-column:span 3;background:#087bd0}.key.zero{grid-column:span 3}.quick{display:grid;grid-template-columns:1fr 1fr;gap:7px}.quick button{height:43px;border:0;border-radius:8px;color:#fff;font-weight:bold}.qadd{background:#16a45f}.qclear{background:#1689c7}.qload{background:#f2ae19}.qsave{background:#7041c8}
+.note{font-size:10px;color:#71838d;line-height:1.5;margin:9px 0 0}.totalbar{display:flex;gap:8px;margin-top:10px}.total{flex:1;text-align:center;background:#f2f8fb;border:1px solid #d5e4eb;padding:10px;border-radius:9px}.total small{display:block;font-size:9px;color:#71838d;font-weight:bold}.total b{font-size:22px;color:#073b61}
+#keypadOverlay{display:none;position:fixed;inset:0;background:#0008;z-index:9999;align-items:flex-end;justify-content:center}.keypad{width:min(520px,100%);background:#f4f7f9;border-radius:18px 18px 0 0;padding:12px}.kpval{text-align:center;background:#fff;border:1px solid #cbd9e0;border-radius:9px;padding:9px;font-family:monospace;font-size:18px;font-weight:bold}.kprows{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.kprows button{height:50px;border:0;border-radius:9px;background:#fff;box-shadow:0 2px 5px #0002;font-size:20px;font-weight:bold}.kprows .ok{background:#07517d;color:#fff}.footer{max-width:1200px;margin:12px auto;padding:10px;color:#5f7581;font-size:10px;display:flex;justify-content:space-between}
+@media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.bottom{grid-template-columns:1fr}.slogan{display:none}.title h1{font-size:21px}}
+@media(max-width:520px){.container{padding:7px}.stats{grid-template-columns:1fr 1fr}.stat strong{font-size:20px}.logo{width:55px;height:55px}.title p{font-size:10px;letter-spacing:1.5px}.top{padding:12px}.footer{padding:8px;display:block}}
+
+/* Stable custom keypad on iPhone / Android / PWA */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overscroll-behavior:none}
+#keypadOverlay{
+  position:fixed!important;
+  left:0;right:0;bottom:0;top:0;
+  width:100vw;
+  height:100dvh;
+  min-height:100svh;
+  padding:0!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+}
+#keypadOverlay .keypad{
+  width:100%!important;
+  max-width:520px!important;
+  min-width:0!important;
+  height:auto!important;
+  max-height:58dvh;
+  padding:10px 10px calc(10px + env(safe-area-inset-bottom))!important;
+  border-radius:18px 18px 0 0;
+  transform:none!important;
+  flex:none!important;
+}
+#keypadOverlay .kprows{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+}
+#keypadOverlay .kprows button{
+  width:100%;
+  min-width:0;
+  height:48px!important;
+  min-height:48px!important;
+  max-height:48px!important;
+  padding:0!important;
+  margin:0!important;
+  font-size:20px!important;
+  line-height:48px!important;
+  transform:none!important;
+}
+#keypadOverlay .kpval{
+  min-height:42px;
+  line-height:24px;
+  font-size:18px!important;
+  overflow:hidden;
+  white-space:nowrap;
+}
+@media(max-height:700px){
+  #keypadOverlay .keypad{padding-top:7px!important}
+  #keypadOverlay .kprows{gap:4px}
+  #keypadOverlay .kprows button{height:43px!important;min-height:43px!important;max-height:43px!important;line-height:43px!important;font-size:18px!important}
+}
+@media(min-width:521px){
+  #keypadOverlay .keypad{border-radius:18px;bottom:12px;position:absolute}
+}
+</style>
+</head>
+<body>
+<header class="top">
+<div class="brand">
+<img class="logo" src="icon-192.png">
+<div class="title"><h1>CSM WYVERN</h1><p>PASSAGE PLAN • DISTANCE CALCULATOR</p></div>
+<div class="slogan">Safe Voyage<br>Efficient Operation<br>Always Forward</div>
+</div>
+<nav><div class="tab active">⌂ CALCULATOR</div><div class="tab">▥ ROUTE MAP</div><div class="tab">● WAYPOINTS</div><div class="tab">▤ ROUTE INFO</div><div class="tab">⚙ SETTINGS</div><div class="tab">ⓘ ABOUT</div></nav>
+</header>
+
+<main class="container">
+<section class="stats">
+<div class="stat"><small>◉ TOTAL DISTANCE</small><strong id="sTotal">0.00 NM</strong></div>
+<div class="stat"><small>↝ TOTAL LEGS</small><strong id="sLegs">0</strong></div>
+<div class="stat"><small>● TOTAL WAYPOINTS</small><strong id="sWp">0</strong></div>
+<div class="stat"><small>➤ LAST BEARING</small><strong id="sBear">---</strong></div>
+<div class="stat"><small>⌁ ROUTE STATUS</small><strong><span class="ready" id="status">NOT READY</span></strong></div>
+</section>
+
+<section class="card">
+<div class="head"><h2>INTERACTIVE ROUTE MAP</h2><span>● LIVE WAYPOINTS</span></div>
+<div id="map"></div>
+</section>
+
+<section class="card">
+<div class="head"><h2>WAYPOINTS & LEG ANALYSIS</h2><span>NM / BEARING</span></div>
+<div class="toolbar" style="margin-bottom:9px">
+<button class="btn green" onclick="add()">＋ ADD WAYPOINT</button>
+<button class="btn gray" onclick="example()">LOAD EXAMPLE</button>
+<button class="btn red" onclick="clearAll()">CLEAR ALL</button>
+</div>
+<div class="tablewrap"><table><thead><tr>
+<th>WP</th><th>POINT NAME</th><th>LAT DEG</th><th>LAT MIN</th><th>N/S</th><th>LONG DEG</th><th>LONG MIN</th><th>E/W</th><th>POSITION</th><th>LEG DISTANCE</th><th>BEARING</th><th>ACTION</th>
+</tr></thead><tbody id="tb"></tbody></table></div>
+<div class="totalbar">
+<div class="total"><small>TOTAL ROUTE DISTANCE</small><b id="tot">0.00 NM</b></div>
+<div class="total"><small>NAUTICAL MILES</small><b id="tot2">0.00 NM</b></div>
+<div class="total"><small>WAYPOINTS</small><b id="num">0</b></div>
+</div>
+</section>
+
+<section class="bottom">
+<div class="panel"><h3>INPUT KEYBOARD</h3><div class="keys">
+<button class="key" onclick="kp('1')">1</button><button class="key" onclick="kp('2')">2</button><button class="key" onclick="kp('3')">3</button><button class="key" onclick="kp('.')">.</button><button class="key" onclick="kp('°')">°</button><button class="key" onclick="kp('′')">′</button>
+<button class="key" onclick="kp('4')">4</button><button class="key" onclick="kp('5')">5</button><button class="key" onclick="kp('6')">6</button><button class="key" onclick="kp('N')">N</button><button class="key" onclick="kp('S')">S</button><button class="key" onclick="backspace()">⌫</button>
+<button class="key" onclick="kp('7')">7</button><button class="key" onclick="kp('8')">8</button><button class="key" onclick="kp('9')">9</button><button class="key" onclick="kp('E')">E</button><button class="key" onclick="kp('W')">W</button><button class="key" onclick="clearInput()">CLR</button>
+<button class="key zero" onclick="kp('0')">0</button><button class="key done" onclick="closeKeypad()">DONE</button>
+</div></div>
+<div class="panel"><h3>QUICK TOOLS</h3><div class="quick">
+<button class="qadd" onclick="add()">＋ Add Waypoint</button><button class="qclear" onclick="clearAll()">♲ Clear All</button>
+<button class="qload" onclick="example()">▣ Load Route</button><button class="qsave" onclick="saveRoute()">▣ Save Route</button>
+</div><p class="note">Save Route stores the current waypoint list in this browser. Use it to continue a passage plan later on the same device.</p></div>
+<div class="panel"><h3>ROUTE INFO</h3><p class="note"><b>Coordinate format</b><br>01° 13.449′ N<br>103° 04.999′ E</p><p class="note"><b>Distance</b><br>Rhumb Line • Nautical Miles</p><p class="note"><b>Important</b><br>For planning/calculation only. Not a replacement for an official nautical chart or ECDIS.</p></div>
+</section>
+</main>
+<div class="footer"><span><b>CSM WYVERN</b> | Passage Plan Distance Calculator</span><span>⚓ Navigate Safely | Operate Efficiently | CSM WYVERN</span></div>
+
+<div id="keypadOverlay" onclick="if(event.target===this)closeKeypad()"><div class="keypad">
+<div style="text-align:center;font-weight:bold;color:#07517d;margin-bottom:7px" id="kpTitle">NUMERIC KEYBOARD</div><div class="kpval" id="kpVal"></div>
+<div class="kprows"><button onclick="kp('1')">1</button><button onclick="kp('2')">2</button><button onclick="kp('3')">3</button></div>
+<div class="kprows"><button onclick="kp('4')">4</button><button onclick="kp('5')">5</button><button onclick="kp('6')">6</button></div>
+<div class="kprows"><button onclick="kp('7')">7</button><button onclick="kp('8')">8</button><button onclick="kp('9')">9</button></div>
+<div class="kprows"><button onclick="kp('.')">.</button><button onclick="kp('0')">0</button><button onclick="backspace()">⌫</button></div>
+<div class="kprows"><button onclick="kp('°')">°</button><button onclick="kp('′')">′</button><button class="ok" onclick="closeKeypad()">DONE</button></div>
+</div></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const ICON="icon-192.png";
+let pts=[
+{n:"WP 1",latD:"01",latM:"13.449",latH:"N",lonD:"103",lonM:"04.999",lonH:"E"},
+{n:"WP 2",latD:"01",latM:"19.999",latH:"N",lonD:"103",lonM:"09.999",lonH:"E"},
+{n:"WP 3",latD:"01",latM:"25.500",latH:"N",lonD:"103",lonM:"15.500",lonH:"E"}
+];
+let activeInput=null,layers=[];
+const map=L.map("map").setView([1.30,103.08],11);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(map);
+
+function val(d,m,h){let v=Math.abs(parseFloat(d||0))+Math.abs(parseFloat(m||0))/60;return(h==="S"||h==="W")?-v:v}
+function pos(p){return String(p.latD||"0").padStart(2,"0")+"° "+String(p.latM||"0.000").padStart(6,"0")+"′ "+p.latH+"   "+String(p.lonD||"0").padStart(3,"0")+"° "+String(p.lonM||"0.000").padStart(6,"0")+"′ "+p.lonH}
+function leg(a,b){let p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,dl=(b.lon-a.lon)*Math.PI/180,dp=p2-p1,ds=Math.log(Math.tan(Math.PI/4+p2/2)/Math.tan(Math.PI/4+p1/2)),q=Math.abs(ds)>1e-12?dp/ds:Math.cos(p1),d=Math.sqrt(dp*dp+q*q*dl*dl)*180/Math.PI*60,br=(Math.atan2(dl,ds)*180/Math.PI+360)%360;return[d,br]}
+function add(){pts.push({n:"WP "+(pts.length+1),latD:"",latM:"",latH:"N",lonD:"",lonM:"",lonH:"E"});render()}
+function del(i){pts.splice(i,1);render()}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+function calculate(){
+ let total=0,last="---",legs=0;
+ for(let i=1;i<pts.length;i++){try{let a={lat:val(pts[i-1].latD,pts[i-1].latM,pts[i-1].latH),lon:val(pts[i-1].lonD,pts[i-1].lonM,pts[i-1].lonH)},b={lat:val(pts[i].latD,pts[i].latM,pts[i].latH),lon:val(pts[i].lonD,pts[i].lonM,pts[i].lonH)};if(Math.abs(a.lat)>90||Math.abs(b.lat)>90||Math.abs(a.lon)>180||Math.abs(b.lon)>180)throw 0;let r=leg(a,b);total+=r[0];last=r[1].toFixed(1)+"°";legs++}catch(e){}}
+ document.getElementById("tot").textContent=total.toFixed(2)+" NM";document.getElementById("tot2").textContent=total.toFixed(2)+" NM";
+ document.getElementById("num").textContent=pts.length;document.getElementById("sTotal").textContent=total.toFixed(2)+" NM";document.getElementById("sLegs").textContent=legs;document.getElementById("sWp").textContent=pts.length;document.getElementById("sBear").textContent=last;
+ document.getElementById("status").textContent=(legs>0&&total>0)?"READY":"NOT READY";
+}
+function render(){
+ let tb=document.getElementById("tb");tb.innerHTML="";
+ pts.forEach((p,i)=>{
+  let d="—",b="—";
+  if(i){try{let r=leg({lat:val(pts[i-1].latD,pts[i-1].latM,pts[i-1].latH),lon:val(pts[i-1].lonD,pts[i-1].lonM,pts[i-1].lonH)},{lat:val(p.latD,p.latM,p.latH),lon:val(p.lonD,p.lonM,p.lonH)});d=r[0].toFixed(2)+" NM";b=r[1].toFixed(1)+"°"}catch(e){}}
+  let tr=document.createElement("tr");tr.innerHTML=`<td><b>${i+1}</b></td><td><input class="wp" value="${esc(p.n)}" oninput="pts[${i}].n=this.value;draw()"></td>
+  <td><input class="deg" data-label="LATITUDE DEG" value="${esc(p.latD)}" placeholder="01"></td><td><input class="min" data-label="LATITUDE MIN" value="${esc(p.latM)}" placeholder="13.449"></td>
+  <td><select class="dir" onchange="pts[${i}].latH=this.value;render()"><option ${p.latH==="N"?"selected":""}>N</option><option ${p.latH==="S"?"selected":""}>S</option></select></td>
+  <td><input class="deg" data-label="LONGITUDE DEG" value="${esc(p.lonD)}" placeholder="103"></td><td><input class="min" data-label="LONGITUDE MIN" value="${esc(p.lonM)}" placeholder="04.999"></td>
+  <td><select class="dir" onchange="pts[${i}].lonH=this.value;render()"><option ${p.lonH==="E"?"selected":""}>E</option><option ${p.lonH==="W"?"selected":""}>W</option></select></td>
+  <td class="pos">${pos(p)}</td><td>${d}</td><td>${b}</td><td><button class="btn red" onclick="del(${i})">DELETE</button></td>`;
+  tb.appendChild(tr);
+  let ins=tr.querySelectorAll("input");ins.forEach((el,k)=>{if(k>0)el.oninput=()=>{let key=["latD","latM","lonD","lonM"][k-1];pts[i][key]=el.value;calculate();draw()};});
+ });
+ calculate();draw();
+}
+function draw(){layers.forEach(x=>map.removeLayer(x));layers=[];let v=[];pts.forEach((p,i)=>{try{let a=val(p.latD,p.latM,p.latH),b=val(p.lonD,p.lonM,p.lonH);if(!isFinite(a)||!isFinite(b)||Math.abs(a)>90||Math.abs(b)>180)throw 0;v.push([a,b,p.n,i])}catch(e){}});if(!v.length)return;let line=v.map(x=>[x[0],x[1]]);layers.push(L.polyline(line,{weight:4,dashArray:"8 6"}).addTo(map));v.forEach(x=>layers.push(L.marker([x[0],x[1]]).addTo(map).bindPopup("<b>"+x[2]+"</b><br>"+pos(pts[x[3]]))));if(v.length>1)map.fitBounds(line,{padding:[25,25]});else map.setView([v[0][0],v[0][1]],13)}
+function example(){pts=[{n:"WP 1",latD:"01",latM:"13.449",latH:"N",lonD:"103",lonM:"04.999",lonH:"E"},{n:"WP 2",latD:"01",latM:"19.999",latH:"N",lonD:"103",lonM:"09.999",lonH:"E"},{n:"WP 3",latD:"01",latM:"25.500",latH:"N",lonD:"103",lonM:"15.500",lonH:"E"},{n:"WP 4",latD:"01",latM:"30.000",latH:"N",lonD:"103",lonM:"20.000",lonH:"E"}];render()}
+function clearAll(){pts=[];render()}
+function saveRoute(){localStorage.setItem("csmWyvernRoute",JSON.stringify(pts));alert("Route saved on this device.")}
+function openKeypad(el){activeInput=el;document.getElementById("kpVal").textContent=el.value||"";document.getElementById("kpTitle").textContent="ENTER "+(el.dataset.label||"VALUE");document.getElementById("keypadOverlay").style.display="flex"}
+function closeKeypad(){document.getElementById("keypadOverlay").style.display="none";activeInput=null;render()}
+function kp(v){if(!activeInput)return;if((v==="°"||v==="′")&&activeInput.value.includes(v))return;activeInput.value+=v;document.getElementById("kpVal").textContent=activeInput.value;activeInput.dispatchEvent(new Event("input",{bubbles:true}))}
+function backspace(){if(!activeInput)return;activeInput.value=activeInput.value.slice(0,-1);document.getElementById("kpVal").textContent=activeInput.value;activeInput.dispatchEvent(new Event("input",{bubbles:true}))}
+function clearInput(){if(!activeInput)return;activeInput.value="";document.getElementById("kpVal").textContent="";activeInput.dispatchEvent(new Event("input",{bubbles:true}))}
+document.addEventListener("click",e=>{let el=e.target.closest("#tb input");if(el){e.preventDefault();openKeypad(el)}})
+let saved=localStorage.getItem("csmWyvernRoute");if(saved)try{pts=JSON.parse(saved)}catch(e){}
+render();
+</script>
+</body></html>
