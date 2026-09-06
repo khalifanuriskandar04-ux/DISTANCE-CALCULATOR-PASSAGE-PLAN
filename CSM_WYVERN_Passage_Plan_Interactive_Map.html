@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSM WYVERN Interactive Route</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+body{font-family:Arial;margin:0;background:#eef3f7;color:#17303d}.wrap{max-width:1100px;margin:auto;padding:10px}.card{background:white;padding:15px;border-radius:15px;margin-bottom:10px;box-shadow:0 3px 15px #0002}h1{text-align:center;color:#123d5a;margin:0}.sub{text-align:center;color:#687983;margin:4px 0 12px}.toolbar{display:flex;gap:7px;flex-wrap:wrap}button{background:#123d5a;color:white;border:0;border-radius:8px;padding:10px 13px;font-weight:bold}button.gray{background:#71808a}button.red{background:#963737}#map{height:470px;border-radius:12px}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:800px}th{background:#123d5a;color:white;padding:8px;font-size:12px}td{padding:6px;text-align:center;border-bottom:1px solid #ddd}input{padding:8px;border:1px solid #bccbd3;border-radius:7px;width:110px}.wp{width:70px}.results{display:flex;gap:8px;margin-top:10px}.box{flex:1;background:#edf6fb;padding:12px;text-align:center;border-radius:9px}.box span{display:block;font-size:11px}.box b{font-size:21px;color:#123d5a}@media(max-width:600px){#map{height:390px}.results{flex-direction:column}}
+</style></head><body><div class="wrap">
+<div class="card"><h1>CSM WYVERN</h1><div class="sub">INTERACTIVE PASSAGE PLAN ROUTE CALCULATOR</div>
+<div class="toolbar"><button onclick="add()">＋ ADD WAYPOINT</button><button class="gray" onclick="example()">LOAD EXAMPLE</button><button class="gray" onclick="clearAll()">CLEAR ALL</button></div></div>
+<div class="card"><div id="map"></div></div>
+<div class="card"><div class="tablewrap"><table><thead><tr><th>No.</th><th>Waypoint</th><th>Latitude</th><th>Longitude</th><th>Leg NM</th><th>Bearing</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="results"><div class="box"><span>TOTAL ROUTE</span><b id="tot">0.00 NM</b></div><div class="box"><span>TOTAL KM</span><b id="km">0.00 km</b></div><div class="box"><span>WAYPOINTS</span><b id="num">0</b></div></div>
+<p style="font-size:12px;color:#687983">Peta memakai Leaflet + OpenStreetMap. Perlu internet untuk menampilkan tile peta. Jarak dihitung Rhumb Line. <b>Jangan gunakan tampilan peta ini sebagai nautical chart resmi untuk navigasi.</b></p></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let pts=[{n:"WP 01",lat:"1.250",lon:"103.750"},{n:"WP 02",lat:"1.333",lon:"103.833"}];
+const map=L.map('map').setView([1.30,103.80],11);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+let layers=[];
+function parse(s,t){s=s.trim().toUpperCase();let h=(s.match(/[NSEW]/)||[])[0],a=s.match(/[-+]?\\d+(?:\\.\\d+)?/g);if(!a)throw 0;let v=Math.abs(+a[0])+(a[1]?+a[1]/60:0)+(a[2]?+a[2]/3600:0);if(a[0][0]=='-')v=-v;if(h)v=Math.abs(v)*((h=='S'||h=='W')?-1:1);if(t=='lat'&&Math.abs(v)>90)throw 0;if(t=='lon'&&Math.abs(v)>180)throw 0;return v}
+function leg(a,b){let p1=a.lat*Math.PI/180,p2=b.lat*Math.PI/180,dl=(b.lon-a.lon)*Math.PI/180,dp=p2-p1,ds=Math.log(Math.tan(Math.PI/4+p2/2)/Math.tan(Math.PI/4+p1/2)),q=Math.abs(ds)>1e-12?dp/ds:Math.cos(p1);return [Math.sqrt(dp*dp+q*q*dl*dl)*180/Math.PI*60,(Math.atan2(dl,ds)*180/Math.PI+360)%360]}
+function add(){pts.push({n:"WP "+String(pts.length+1).padStart(2,"0"),lat:"",lon:""});render()}
+function del(i){pts.splice(i,1);render()}
+function set(i,k,v){pts[i][k]=v;render()}
+function render(){let tb=document.getElementById('tb');tb.innerHTML='';let total=0;pts.forEach((p,i)=>{let d='—',b='—';if(i){try{let r=leg({lat:parse(pts[i-1].lat,'lat'),lon:parse(pts[i-1].lon,'lon')},{lat:parse(p.lat,'lat'),lon:parse(p.lon,'lon')});d=r[0].toFixed(2);b=r[1].toFixed(1);total+=r[0]}catch(e){}}let tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td><input class=wp value="${p.n}" oninput="pts[${i}].n=this.value"></td><td><input value="${p.lat}" placeholder="1.250 N" oninput="pts[${i}].lat=this.value;render()"></td><td><input value="${p.lon}" placeholder="103.750 E" oninput="pts[${i}].lon=this.value;render()"></td><td>${d=="—"?d:d+" NM"}</td><td>${b=="—"?b:b+"°"}</td><td><button class=red onclick="del(${i})">DELETE</button></td>`;tb.appendChild(tr)});document.getElementById('tot').textContent=total.toFixed(2)+' NM';document.getElementById('km').textContent=(total*1.852).toFixed(2)+' km';document.getElementById('num').textContent=pts.length;draw()}
+function draw(){layers.forEach(x=>map.removeLayer(x));layers=[];let v=[];pts.forEach((p,i)=>{try{v.push([parse(p.lat,'lat'),parse(p.lon,'lon'),p.n,i])}catch(e){}});if(!v.length)return;let line=v.map(x=>[x[0],x[1]]);layers.push(L.polyline(line,{weight:4,dashArray:'8 6'}).addTo(map));v.forEach(x=>{let m=L.marker([x[0],x[1]]).addTo(map).bindPopup('<b>'+x[2]+'</b><br>Lat: '+x[0].toFixed(6)+'<br>Lon: '+x[1].toFixed(6));layers.push(m)});map.fitBounds(line,{padding:[25,25]})}
+function clearAll(){pts=[];render()}
+function example(){pts=[{n:"WP 01",lat:"1.250",lon:"103.750"},{n:"WP 02",lat:"1.333",lon:"103.833"},{n:"WP 03",lat:"1.417",lon:"103.917"},{n:"WP 04",lat:"1.500",lon:"104.000"}];render()}
+render();
+</script></body></html>
